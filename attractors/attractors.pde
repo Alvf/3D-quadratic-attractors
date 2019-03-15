@@ -1,4 +1,4 @@
-  //the goal: give a random set of coefficients for a general linear
+    //the goal: give a random set of coefficients for a general linear
   //3D attracting system and graph it to see how cool it looks given
   //some random starting points
   import peasy.*;
@@ -11,7 +11,7 @@
   float[] yi = {random(-10,10),random(-10,10),random(-10,10),random(-10,10)};
   float[] zi = {0,0,0,0};
   color[] colors = {#FFFFFF,#3EB600,#603EFF,#E10837};
-  float dt = 0.001;
+  float dt = 0.01;
   
   //random coefficients; there are eighteen; 3+3+3 for each d(x,y,z)/dt
   float[] c = new float[27];
@@ -26,9 +26,20 @@ void setup(){
   points[k] = new ArrayList<PVector>();
   }
   
-  for(int j = 0; j<c.length;j++){
-    c[j] = random(-10,10);
-  }
+  //for(int j = 0; j<c.length;j++){
+  //  c[j] = random(-10,10);
+  //}
+  
+  c[0] = -10 ;
+  c[1] = -c[0];
+  c[2] = c[3] = c[4] = c[5] = c[6] = c[7] = c[8] = 0;
+  c[10] = c[16] = -1;
+  c[9] = 28;
+  c[11] = c[12] = c[13] = c[14] = c[15] = c[17] = 0;
+  c[20] = -8/3;
+  c[24] = 1;
+  c[18] = c[19] = c[21] = c[22] =c[23] = c[25] = c[26] = 0;
+  
   
   while(!isinteresting(c,10000,100000,0.02)){
     
@@ -68,18 +79,27 @@ public float[] iterate(float x0,float y0,float z0,float[] c){
 }
 
 boolean isinteresting(float[] c,float bounds,int iterations,float close){
-for(int n = 0; n<7;n++){
+for(int n = 0; n<3;n++){
   float maxvec =0;
   ArrayList<PVector> testrun = new ArrayList<PVector>();
+  ArrayList<PVector> testrun2 = new ArrayList<PVector>();
   float x0 = random(-10,10);
   float y0 = random(-10,10);
   float z0 = random(-10,10);
+  
+  float x1 = x0 + random(-0.5,0.5);
+  float y1 = y0 + random(-0.5,0.5);
+  float z1 = z0 + random(-0.5,0.5);
   
   for(int l = 0; l<iterations; l++){
     testrun.add(new PVector(x0,y0,z0));
     x0 = iterate(x0,y0,z0,c)[0];
     y0 = iterate(x0,y0,z0,c)[1];
     z0 = iterate(x0,y0,z0,c)[2];
+    testrun2.add(new PVector(x1,y1,z1));
+    x1 = iterate(x1,y1,z1,c)[0];
+    y1 = iterate(x1,y1,z1,c)[1];
+    z1 = iterate(x1,y1,z1,c)[2];
   }
   
   for(int k = 0; k<testrun.size();k++){
@@ -87,7 +107,10 @@ for(int n = 0; n<7;n++){
     if (testrun.get(k).mag()>maxvec){
       maxvec = testrun.get(k).mag(); 
     }
-    if(Double.isNaN(testrun.get(k).mag())){
+    else if (testrun2.get(k).mag()>maxvec){
+      maxvec = testrun2.get(k).mag();
+    }
+    if(Double.isNaN(testrun.get(k).mag())|| Double.isNaN(testrun2.get(k).mag())){
       System.out.println("blowing up is boring");
       return false;
     }
@@ -96,11 +119,17 @@ for(int n = 0; n<7;n++){
     return false;
   }
   
-  if(PVector.sub(testrun.get(testrun.size()-2),testrun.get(testrun.size()-1)).mag()<close){
+  if(PVector.sub(testrun.get(testrun.size()-2),testrun.get(testrun.size()-1)).mag()<close
+  || PVector.sub(testrun2.get(testrun2.size()-2),testrun2.get(testrun2.size()-1)).mag()<close){
     System.out.println("point attractors are boring");
     return false;
   }
   
+  float finalclose = PVector.sub(testrun.get(testrun.size()-1),testrun2.get(testrun2.size()-1)).mag(); 
+  if(finalclose<close){
+    System.out.println("orbits are boring");
+    return false;
+  }
 }
   
   
